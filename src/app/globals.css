@@ -1,0 +1,77 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg: 250 250 252;
+  --fg: 17 24 39;
+  --muted: 107 114 128;
+  --card: 255 255 255;
+  --border: 226 232 240;
+  --accent: 99 102 241;
+  --accent-fg: 255 255 255;
+  --success: 16 185 129;
+  --warn: 245 158 11;
+  --danger: 239 68 68;
+}
+
+html, body {
+  background-color: rgb(var(--bg));
+  color: rgb(var(--fg));
+  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+@layer components {
+  .card {
+    @apply bg-white rounded-xl border border-slate-200 shadow-sm;
+  }
+  .btn {
+    @apply inline-flex items-center gap-2 px-3.5 py-2 rounded-lg text-sm font-medium
+      transition shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2;
+  }
+  .btn-primary {
+    @apply btn bg-brand-600 text-white hover:bg-brand-700;
+  }
+  .btn-ghost {
+    @apply btn bg-white text-slate-700 border border-slate-200 hover:bg-slate-50;
+  }
+  .btn-danger {
+    @apply btn bg-red-50 text-red-700 border border-red-200 hover:bg-red-100;
+  }
+  .input {
+    @apply w-full px-3 py-2 rounded-lg border border-slate-200 bg-white text-sm
+      focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent;
+  }
+  .label {
+    @apply block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1.5;
+  }
+  .badge {
+    @apply inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium;
+  }
+  .table-row-clickable {
+    @apply cursor-pointer hover:bg-slate-50 transition;
+  }
+}
+
+/* Beautiful AI markdown output */
+.ai-prose {
+  color: #0f172a;
+}
+.ai-prose h1 { @apply text-2xl font-bold mt-6 mb-3 text-slate-900; }
+.ai-prose h2 { @apply text-xl font-semibold mt-5 mb-2 text-slate-900; }
+.ai-prose h3 { @apply text-lg font-semibold mt-4 mb-2 text-slate-800; }
+.ai-prose p  { @apply my-3 leading-relaxed; }
+.ai-prose ul { @apply list-disc pl-6 my-3 space-y-1; }
+.ai-prose ol { @apply list-decimal pl-6 my-3 space-y-1; }
+.ai-prose li { @apply leading-relaxed; }
+.ai-prose strong { @apply font-semibold text-slate-900; }
+.ai-prose blockquote { @apply border-l-4 border-brand-500 bg-brand-50 pl-4 py-2 my-3 italic rounded-r; }
+.ai-prose code { @apply bg-slate-100 text-pink-700 px-1.5 py-0.5 rounded text-[0.85em]; }
+.ai-prose pre  { @apply bg-slate-900 text-slate-100 p-4 rounded-lg overflow-x-auto my-4; }
+.ai-prose pre code { @apply bg-transparent text-slate-100 p-0; }
+.ai-prose table { @apply w-full border-collapse my-4 text-sm; }
+.ai-prose th { @apply bg-slate-100 text-left px-3 py-2 border border-slate-200 font-semibold; }
+.ai-prose td { @apply px-3 py-2 border border-slate-200; }
+.ai-prose hr { @apply my-6 border-slate-200; }
+.ai-prose a  { @apply text-brand-600 underline hover:text-brand-700; }
