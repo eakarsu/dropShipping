@@ -68,6 +68,7 @@ export function Sidebar({ userName }: { userName: string }) {
 
         <NavSection title="AI Center" highlight>
           <NavLink href="/ai" icon="Sparkles" label="All AI Tools" active={path === "/ai"} />
+          <NavLink href="/profit-leak" icon="BadgeDollarSign" label="Profit Leak Scanner" active={path === "/profit-leak"} />
           {AI_TOOLS.slice(0, 6).map((t) => (
             <NavLink
               key={t.slug}
