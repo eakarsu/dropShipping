@@ -10,7 +10,7 @@ export function DataTable({
   rows: Record<string, unknown>[];
   columns: ColumnDef[];
   slug: string;
-  onDelete: (id: number) => void;
+  onDelete?: (id: number) => void;
 }) {
   const router = useRouter();
 
@@ -56,16 +56,16 @@ export function DataTable({
                   ))}
                   <td className="px-4 py-3 text-right" onClick={(e) => e.stopPropagation()}>
                     <div className="inline-flex gap-1">
-                      <button
+                      {onDelete && <button
                         onClick={() => router.push(`/${slug}/${id}`)}
                         className="p-1.5 text-slate-500 hover:text-brand-700 hover:bg-brand-50 rounded transition"
                         title="View / Edit"
                       >
                         <Icon name="Pencil" className="w-4 h-4" />
-                      </button>
+                      </button>}
                       <button
                         onClick={() => {
-                          if (confirm("Delete this item?")) onDelete(id);
+                          if (confirm("Delete this item?")) onDelete?.(id);
                         }}
                         className="p-1.5 text-slate-500 hover:text-red-700 hover:bg-red-50 rounded transition"
                         title="Delete"

@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { FEATURES_BY_SLUG } from "@/lib/features";
 import { FeatureForm } from "@/components/feature-form";
 import { Icon } from "@/components/icon";
+import { getRequiredSession } from "@/lib/auth";
 
 export default async function NewFeaturePage({
   params,
@@ -12,6 +13,8 @@ export default async function NewFeaturePage({
   const { feature } = await params;
   const def = FEATURES_BY_SLUG[feature];
   if (!def) notFound();
+  await getRequiredSession(["operator", "merchant_admin"]);
+  if (["orders", "returns", "shipments"].includes(feature)) notFound();
 
   return (
     <div className="space-y-5 max-w-3xl">

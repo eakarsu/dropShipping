@@ -29,7 +29,6 @@ export type FeatureDef = {
   singular: string;
   description: string;
   icon: string;            // lucide name
-  primaryAiTool?: string;  // AI tools registry slug
   columns: ColumnDef[];    // list page columns
   fields: FieldDef[];      // create/edit form fields
 };
@@ -42,7 +41,6 @@ export const FEATURES: FeatureDef[] = [
     singular: "Product",
     description: "Catalog of items you sell across all channels.",
     icon: "Package",
-    primaryAiTool: "product-description",
     columns: [
       { name: "sku", label: "SKU" },
       { name: "title", label: "Title" },
@@ -68,7 +66,6 @@ export const FEATURES: FeatureDef[] = [
     singular: "Supplier",
     description: "Vendors who fulfill your products.",
     icon: "Factory",
-    primaryAiTool: "supplier-evaluation",
     columns: [
       { name: "name", label: "Name" },
       { name: "country", label: "Country" },
@@ -94,7 +91,6 @@ export const FEATURES: FeatureDef[] = [
     singular: "Order",
     description: "Orders received across all sales channels.",
     icon: "ShoppingCart",
-    primaryAiTool: "demand-forecast",
     columns: [
       { name: "orderNumber", label: "Order #" },
       { name: "channel", label: "Channel", format: "badge" },
@@ -119,7 +115,6 @@ export const FEATURES: FeatureDef[] = [
     singular: "Customer",
     description: "People who buy from your stores.",
     icon: "Users",
-    primaryAiTool: "customer-segmentation",
     columns: [
       { name: "name", label: "Name" },
       { name: "email", label: "Email" },
@@ -144,7 +139,6 @@ export const FEATURES: FeatureDef[] = [
     singular: "Inventory item",
     description: "Stock levels per product per warehouse.",
     icon: "Boxes",
-    primaryAiTool: "demand-forecast",
     columns: [
       { name: "productId", label: "Product ID" },
       { name: "warehouse", label: "Warehouse" },
@@ -168,7 +162,6 @@ export const FEATURES: FeatureDef[] = [
     singular: "Campaign",
     description: "Paid + email marketing campaigns.",
     icon: "Megaphone",
-    primaryAiTool: "ad-copy",
     columns: [
       { name: "name", label: "Name" },
       { name: "channel", label: "Channel", format: "badge" },
@@ -192,7 +185,6 @@ export const FEATURES: FeatureDef[] = [
     singular: "Channel",
     description: "Connected Amazon, Shopify, and Etsy stores.",
     icon: "Network",
-    primaryAiTool: "cross-channel-strategy",
     columns: [
       { name: "platform", label: "Platform", format: "badge" },
       { name: "storeName", label: "Store" },
@@ -214,7 +206,6 @@ export const FEATURES: FeatureDef[] = [
     singular: "Pricing rule",
     description: "Automated pricing strategies.",
     icon: "DollarSign",
-    primaryAiTool: "pricing-suggestion",
     columns: [
       { name: "name", label: "Name" },
       { name: "scope", label: "Scope", format: "badge" },
@@ -238,7 +229,6 @@ export const FEATURES: FeatureDef[] = [
     singular: "Review",
     description: "Customer reviews across all channels.",
     icon: "Star",
-    primaryAiTool: "review-response",
     columns: [
       { name: "productId", label: "Product" },
       { name: "customerName", label: "Customer" },
@@ -263,7 +253,6 @@ export const FEATURES: FeatureDef[] = [
     singular: "Return",
     description: "Customer return requests.",
     icon: "PackageX",
-    primaryAiTool: "return-classification",
     columns: [
       { name: "orderId", label: "Order" },
       { name: "reason", label: "Reason", format: "badge" },
@@ -286,7 +275,6 @@ export const FEATURES: FeatureDef[] = [
     singular: "Shipment",
     description: "Outgoing fulfillment and tracking.",
     icon: "Truck",
-    primaryAiTool: "executive-summary",
     columns: [
       { name: "orderId", label: "Order" },
       { name: "carrier", label: "Carrier" },

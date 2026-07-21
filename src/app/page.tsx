@@ -3,5 +3,5 @@ import { getSession } from "@/lib/auth";
 
 export default async function Home() {
   const s = await getSession();
-  redirect(s ? "/dashboard" : "/login");
+  redirect(s ? (s.role === "customer" ? "/customer/orders" : "/dashboard") : "/login");
 }

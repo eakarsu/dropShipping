@@ -7,7 +7,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   if (!s) redirect("/login");
   return (
     <div className="flex min-h-screen">
-      <Sidebar userName={s.name} />
+      <Sidebar userName={s.name} role={s.role} />
       <main className="flex-1 min-w-0">
         <div className="px-8 py-6 max-w-[1400px] mx-auto">{children}</div>
       </main>

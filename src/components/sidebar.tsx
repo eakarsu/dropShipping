@@ -3,11 +3,10 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { FEATURES } from "@/lib/features";
-import { AI_TOOLS } from "@/lib/ai-tools";
 import { Icon } from "./icon";
 import clsx from "clsx";
 
-export function Sidebar({ userName }: { userName: string }) {
+export function Sidebar({ userName, role }: { userName: string; role: string }) {
   const path = usePathname();
   const router = useRouter();
 
@@ -33,12 +32,16 @@ export function Sidebar({ userName }: { userName: string }) {
       </div>
 
       <nav className="flex-1 overflow-y-auto py-3 px-3 space-y-5">
-        <NavSection title="Overview">
+        {role !== "customer" && <NavSection title="Overview">
           <NavLink href="/dashboard" icon="LayoutDashboard" label="Dashboard" active={isActive("/dashboard")} />
           <NavLink href="/analytics" icon="BarChart3" label="Analytics" active={isActive("/analytics")} />
-        </NavSection>
+        </NavSection>}
 
-        <NavSection title="Operations">
+        {role === "customer" && <NavSection title="My account">
+          <NavLink href="/customer/orders" icon="ShoppingCart" label="My orders" active={isActive("/customer/orders")} />
+        </NavSection>}
+
+        {role !== "customer" && <NavSection title="Operations">
           {FEATURES.filter((f) =>
             ["products", "suppliers", "orders", "customers", "inventory", "shipments", "returns"].includes(f.slug),
           ).map((f) => (
@@ -50,9 +53,9 @@ export function Sidebar({ userName }: { userName: string }) {
               active={isActive(`/${f.slug}`)}
             />
           ))}
-        </NavSection>
+        </NavSection>}
 
-        <NavSection title="Growth">
+        {role !== "customer" && <NavSection title="Growth">
           {FEATURES.filter((f) =>
             ["channels", "campaigns", "pricing-rules", "reviews"].includes(f.slug),
           ).map((f) => (
@@ -64,28 +67,8 @@ export function Sidebar({ userName }: { userName: string }) {
               active={isActive(`/${f.slug}`)}
             />
           ))}
-        </NavSection>
+        </NavSection>}
 
-        <NavSection title="AI Center" highlight>
-          <NavLink href="/ai" icon="Sparkles" label="All AI Tools" active={path === "/ai"} />
-          <NavLink href="/profit-leak" icon="BadgeDollarSign" label="Profit Leak Scanner" active={path === "/profit-leak"} />
-          {AI_TOOLS.slice(0, 6).map((t) => (
-            <NavLink
-              key={t.slug}
-              href={`/ai/${t.slug}`}
-              icon={t.icon}
-              label={t.name}
-              active={path === `/ai/${t.slug}`}
-              dim
-            />
-          ))}
-          <Link
-            href="/ai"
-            className="block text-[11px] text-brand-300 hover:text-brand-200 pl-9 mt-1"
-          >
-            + see all {AI_TOOLS.length} AI tools →
-          </Link>
-        </NavSection>
       </nav>
 
       <div className="border-t border-slate-800 p-3 flex items-center justify-between">
@@ -95,7 +78,7 @@ export function Sidebar({ userName }: { userName: string }) {
           </div>
           <div>
             <div className="text-sm leading-tight">{userName}</div>
-            <div className="text-[11px] text-slate-400">admin</div>
+            <div className="text-[11px] text-slate-400">{role.replace("_", " ")}</div>
           </div>
         </div>
         <button onClick={logout} className="text-xs text-slate-400 hover:text-slate-100" title="Logout">
@@ -106,12 +89,12 @@ export function Sidebar({ userName }: { userName: string }) {
   );
 }
 
-function NavSection({ title, children, highlight }: { title: string; children: React.ReactNode; highlight?: boolean }) {
+function NavSection({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div>
       <div className={clsx(
         "px-2 mb-1 text-[10px] uppercase tracking-widest font-semibold",
-        highlight ? "text-brand-300" : "text-slate-500",
+        "text-slate-500",
       )}>{title}</div>
       <div className="space-y-0.5">{children}</div>
     </div>
@@ -119,8 +102,8 @@ function NavSection({ title, children, highlight }: { title: string; children: R
 }
 
 function NavLink({
-  href, icon, label, active, dim,
-}: { href: string; icon: string; label: string; active: boolean; dim?: boolean }) {
+  href, icon, label, active,
+}: { href: string; icon: string; label: string; active: boolean }) {
   return (
     <Link
       href={href}
@@ -128,9 +111,7 @@ function NavLink({
         "flex items-center gap-2.5 px-2.5 py-1.5 rounded-md text-sm transition",
         active
           ? "bg-brand-600 text-white"
-          : dim
-            ? "text-slate-400 hover:text-slate-100 hover:bg-slate-800"
-            : "text-slate-200 hover:bg-slate-800",
+          : "text-slate-200 hover:bg-slate-800",
       )}
     >
       <Icon name={icon} className="w-4 h-4 shrink-0" />

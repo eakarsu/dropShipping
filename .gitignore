@@ -43,6 +43,7 @@ secrets.yaml
 *.key
 **/credentials*.json
 **/serviceAccount*.json
+!.env.example
 
 # --- secrets: never commit ---
 .env

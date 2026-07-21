@@ -1,0 +1,65 @@
+services:
+  db:
+    image: postgres:17.9-alpine3.22
+    environment:
+      POSTGRES_DB: dropship
+      POSTGRES_USER: dropship
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}
+    volumes:
+      - dropship-db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U dropship -d dropship"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+
+  migrate:
+    build:
+      context: .
+      target: migration
+    environment:
+      DATABASE_URL: postgresql://dropship:${POSTGRES_PASSWORD}@db:5432/dropship
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: "no"
+
+  app:
+    build: .
+    environment:
+      DATABASE_URL: postgresql://dropship:${POSTGRES_PASSWORD}@db:5432/dropship
+      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET}
+      ORDER_AUDIT_SIGNING_KEY: ${ORDER_AUDIT_SIGNING_KEY:?Set ORDER_AUDIT_SIGNING_KEY}
+      ORDER_AUDIT_KEY_ID: ${ORDER_AUDIT_KEY_ID:-primary}
+      APP_URL: ${APP_URL:?Set APP_URL}
+      TAX_PROVIDER_URL: ${TAX_PROVIDER_URL:?Set TAX_PROVIDER_URL}
+      TAX_PROVIDER_API_KEY: ${TAX_PROVIDER_API_KEY:?Set TAX_PROVIDER_API_KEY}
+      PAYMENT_PROVIDER_URL: ${PAYMENT_PROVIDER_URL:?Set PAYMENT_PROVIDER_URL}
+      PAYMENT_PROVIDER_API_KEY: ${PAYMENT_PROVIDER_API_KEY:?Set PAYMENT_PROVIDER_API_KEY}
+      SHIPPING_PROVIDER_URL: ${SHIPPING_PROVIDER_URL:?Set SHIPPING_PROVIDER_URL}
+      SHIPPING_PROVIDER_API_KEY: ${SHIPPING_PROVIDER_API_KEY:?Set SHIPPING_PROVIDER_API_KEY}
+      INVENTORY_PROVIDER_URL: ${INVENTORY_PROVIDER_URL:?Set INVENTORY_PROVIDER_URL}
+      INVENTORY_PROVIDER_API_KEY: ${INVENTORY_PROVIDER_API_KEY:?Set INVENTORY_PROVIDER_API_KEY}
+      PARTNER_PROVIDER_URL: ${PARTNER_PROVIDER_URL:?Set PARTNER_PROVIDER_URL}
+      PARTNER_PROVIDER_API_KEY: ${PARTNER_PROVIDER_API_KEY:?Set PARTNER_PROVIDER_API_KEY}
+      WEBHOOK_PAYMENT_SECRET: ${WEBHOOK_PAYMENT_SECRET:?Set WEBHOOK_PAYMENT_SECRET}
+      WEBHOOK_SHIPPING_SECRET: ${WEBHOOK_SHIPPING_SECRET:?Set WEBHOOK_SHIPPING_SECRET}
+      WEBHOOK_INVENTORY_SECRET: ${WEBHOOK_INVENTORY_SECRET:?Set WEBHOOK_INVENTORY_SECRET}
+      WEBHOOK_PARTNER_SECRET: ${WEBHOOK_PARTNER_SECRET:?Set WEBHOOK_PARTNER_SECRET}
+    ports:
+      - "127.0.0.1:${PORT:-3001}:3001"
+    read_only: true
+    tmpfs: [/tmp]
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3001/api/health').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
+      interval: 10s
+      timeout: 3s
+      retries: 12
+    restart: unless-stopped
+
+volumes:
+  dropship-db:

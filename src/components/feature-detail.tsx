@@ -6,10 +6,11 @@ import { FeatureForm } from "./feature-form";
 import { Icon } from "./icon";
 import Link from "next/link";
 import type { FeatureDef } from "@/lib/features";
+import { OrderActions } from "./order-actions";
 
 export function FeatureDetailClient({
-  feature, row, id,
-}: { feature: FeatureDef; row: Record<string, unknown>; id: number }) {
+  feature, row, id, governed = false, canDelete = false, role,
+}: { feature: FeatureDef; row: Record<string, unknown>; id: number; governed?: boolean; canDelete?: boolean; role: string }) {
   const router = useRouter();
   const [editing, setEditing] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -39,24 +40,20 @@ export function FeatureDetailClient({
           <p className="text-slate-500 text-sm">{feature.singular} details and actions.</p>
         </div>
         <div className="flex items-center gap-2">
-          {feature.primaryAiTool && (
-            <Link href={`/ai/${feature.primaryAiTool}`} className="btn-ghost">
-              <Icon name="Sparkles" className="w-4 h-4 text-brand-600" />
-              AI assist
-            </Link>
-          )}
-          {!editing && (
+          {!governed && !editing && (
             <button onClick={() => setEditing(true)} className="btn-ghost">
               <Icon name="Pencil" className="w-4 h-4" />
               Edit
             </button>
           )}
-          <button onClick={del} disabled={busy} className="btn-danger">
+          {!governed && canDelete && <button onClick={del} disabled={busy} className="btn-danger">
             <Icon name="Trash2" className="w-4 h-4" />
             Delete
-          </button>
+          </button>}
         </div>
       </div>
+
+      {feature.slug === "orders" && <OrderActions order={row} role={role} />}
 
       {editing ? (
         <FeatureForm slug={feature.slug} fields={feature.fields} initial={row} mode="edit" id={id} />

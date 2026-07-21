@@ -4,15 +4,15 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { DataTable } from "./data-table";
 import { Icon } from "./icon";
-import Link from "next/link";
 import type { FeatureDef } from "@/lib/features";
 
 export function FeatureListClient({
-  feature, initialRows,
-}: { feature: FeatureDef; initialRows: Record<string, unknown>[] }) {
+  feature, initialRows, canDelete,
+}: { feature: FeatureDef; initialRows: Record<string, unknown>[]; canDelete: boolean }) {
   const router = useRouter();
   const [rows, setRows] = useState(initialRows);
   const [filter, setFilter] = useState("");
+  const governed = ["orders", "returns", "shipments"].includes(feature.slug);
 
   async function deleteRow(id: number) {
     const res = await fetch(`/api/features/${feature.slug}/${id}`, { method: "DELETE" });
@@ -42,16 +42,10 @@ export function FeatureListClient({
           <p className="text-slate-500 text-sm">{feature.description}</p>
         </div>
         <div className="flex items-center gap-2">
-          {feature.primaryAiTool && (
-            <Link href={`/ai/${feature.primaryAiTool}`} className="btn-ghost">
-              <Icon name="Sparkles" className="w-4 h-4 text-brand-600" />
-              AI assist
-            </Link>
-          )}
-          <button onClick={() => router.push(`/${feature.slug}/new`)} className="btn-primary">
+          {(!governed || feature.slug === "orders") && <button onClick={() => router.push(`/${feature.slug}/new`)} className="btn-primary">
             <Icon name="Plus" className="w-4 h-4" />
             New {feature.singular}
-          </button>
+          </button>}
         </div>
       </div>
 
@@ -67,7 +61,7 @@ export function FeatureListClient({
         </div>
       </div>
 
-      <DataTable rows={filtered} columns={feature.columns} slug={feature.slug} onDelete={deleteRow} />
+      <DataTable rows={filtered} columns={feature.columns} slug={feature.slug} onDelete={governed || !canDelete ? undefined : deleteRow} />
     </div>
   );
 }

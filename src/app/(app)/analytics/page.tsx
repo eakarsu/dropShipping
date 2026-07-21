@@ -1,24 +1,25 @@
-import { db } from "@/lib/db";
-import { sql } from "drizzle-orm";
+import { pool } from "@/lib/db";
+import { getRequiredSession } from "@/lib/auth";
 import { Icon } from "@/components/icon";
-import Link from "next/link";
 
 export const dynamic = "force-dynamic";
 
-async function metric(q: string) {
-  const r = await db.execute<{ v: string }>(sql.raw(q));
+async function metric(q: string, merchantId: string) {
+  const r = await pool.query<{ v: string }>(q, [merchantId]);
   return r.rows[0]?.v ?? "0";
 }
 
 export default async function AnalyticsPage() {
+  const session = await getRequiredSession(["operator", "merchant_admin"]);
+  const merchantId = session.merchantId;
   const [totalRevenue, paidOrders, aov, returnRate, topCat, byChannel, byStatus] = await Promise.all([
-    metric(`SELECT COALESCE(SUM(total),0)::text AS v FROM orders WHERE status IN ('paid','shipped','delivered')`),
-    metric(`SELECT COUNT(*)::text AS v FROM orders WHERE status IN ('paid','shipped','delivered')`),
-    metric(`SELECT COALESCE(AVG(total),0)::text AS v FROM orders WHERE status IN ('paid','shipped','delivered')`),
-    metric(`SELECT (CASE WHEN (SELECT COUNT(*) FROM orders) = 0 THEN 0 ELSE (SELECT COUNT(*) FROM returns) * 100.0 / (SELECT COUNT(*) FROM orders) END)::text AS v`),
-    db.execute<{ category: string; n: string }>(sql.raw(`SELECT category, COUNT(*)::text AS n FROM products GROUP BY category ORDER BY COUNT(*) DESC LIMIT 5`)),
-    db.execute<{ channel: string; n: string; rev: string }>(sql.raw(`SELECT channel, COUNT(*)::text AS n, COALESCE(SUM(total),0)::text AS rev FROM orders GROUP BY channel`)),
-    db.execute<{ status: string; n: string }>(sql.raw(`SELECT status, COUNT(*)::text AS n FROM orders GROUP BY status`)),
+    metric(`SELECT COALESCE(SUM(total),0)::text AS v FROM orders WHERE merchant_id=$1 AND payment_status='paid' AND refund_status <> 'refunded'`, merchantId),
+    metric(`SELECT COUNT(*)::text AS v FROM orders WHERE merchant_id=$1 AND payment_status='paid'`, merchantId),
+    metric(`SELECT COALESCE(AVG(total),0)::text AS v FROM orders WHERE merchant_id=$1 AND payment_status='paid'`, merchantId),
+    metric(`SELECT CASE WHEN COUNT(*)=0 THEN '0' ELSE (COUNT(*) FILTER (WHERE refund_status IN ('pending','refunded','failed')) * 100.0 / COUNT(*))::text END AS v FROM orders WHERE merchant_id=$1`, merchantId),
+    pool.query<{ category: string; n: string }>(`SELECT category,COUNT(*)::text AS n FROM products WHERE merchant_id=$1 GROUP BY category ORDER BY COUNT(*) DESC LIMIT 5`, [merchantId]),
+    pool.query<{ channel: string; n: string; rev: string }>(`SELECT channel,COUNT(*)::text AS n,COALESCE(SUM(total),0)::text AS rev FROM orders WHERE merchant_id=$1 GROUP BY channel`, [merchantId]),
+    pool.query<{ status: string; n: string }>(`SELECT status,COUNT(*)::text AS n FROM orders WHERE merchant_id=$1 GROUP BY status`, [merchantId]),
   ]);
 
   const aovNum = Number(aov);
@@ -31,10 +32,6 @@ export default async function AnalyticsPage() {
           <h1 className="text-2xl font-bold tracking-tight">Analytics</h1>
           <p className="text-slate-500 text-sm">Real-time business performance across your sales channels.</p>
         </div>
-        <Link href="/ai/executive-summary" className="btn-primary">
-          <Icon name="Sparkles" className="w-4 h-4" />
-          AI Executive Summary
-        </Link>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">

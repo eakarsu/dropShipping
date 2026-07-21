@@ -1,29 +1,29 @@
 import Link from "next/link";
-import { db, schema } from "@/lib/db";
+import { db, pool, schema } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
 
-import { sql } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
+import { getRequiredSession } from "@/lib/auth";
 import { FEATURES } from "@/lib/features";
-import { AI_TOOLS } from "@/lib/ai-tools";
 import { Icon } from "@/components/icon";
 
-async function counts() {
-  const tables = ["products", "suppliers", "orders", "customers", "inventory", "campaigns", "channels", "pricing_rules", "reviews", "returns", "shipments", "ai_runs"] as const;
+async function counts(merchantId: string) {
+  const tables = ["products", "suppliers", "orders", "customers", "inventory", "campaigns", "channels", "pricing_rules", "reviews", "returns", "shipments"] as const;
   const out: Record<string, number> = {};
   for (const t of tables) {
-    const r = await db.execute<{ c: string }>(sql.raw(`SELECT COUNT(*)::text AS c FROM ${t}`));
+    const r = await pool.query<{ c: string }>(`SELECT COUNT(*)::text AS c FROM ${t} WHERE merchant_id=$1`, [merchantId]);
     out[t] = Number((r.rows[0]?.c ?? "0"));
   }
   return out;
 }
 
-async function recentOrders() {
-  return db.select().from(schema.orders).orderBy(sql`created_at DESC`).limit(5);
+async function recentOrders(merchantId: string) {
+  return db.select().from(schema.orders).where(eq(schema.orders.merchantId, merchantId)).orderBy(desc(schema.orders.createdAt)).limit(5);
 }
 
-async function topProducts() {
-  return db.select().from(schema.products).limit(4);
+async function topProducts(merchantId: string) {
+  return db.select().from(schema.products).where(eq(schema.products.merchantId, merchantId)).limit(4);
 }
 
 const slugToTable: Record<string, string> = {
@@ -41,10 +41,11 @@ const slugToTable: Record<string, string> = {
 };
 
 export default async function DashboardPage() {
-  const [c, latest, prods] = await Promise.all([counts(), recentOrders(), topProducts()]);
+  const session = await getRequiredSession(["operator", "merchant_admin"]);
+  const [c, latest, prods] = await Promise.all([counts(session.merchantId), recentOrders(session.merchantId), topProducts(session.merchantId)]);
 
-  const totalRevenue = (await db.execute<{ s: string }>(
-    sql.raw(`SELECT COALESCE(SUM(total),0)::text AS s FROM orders WHERE status IN ('paid','shipped','delivered')`),
+  const totalRevenue = (await pool.query<{ s: string }>(
+    `SELECT COALESCE(SUM(total),0)::text AS s FROM orders WHERE merchant_id=$1 AND payment_status='paid' AND refund_status <> 'refunded'`, [session.merchantId],
   )).rows[0]?.s ?? "0";
 
   return (
@@ -59,7 +60,7 @@ export default async function DashboardPage() {
         <KpiCard icon="DollarSign" label="Revenue (paid+)" value={`$${Number(totalRevenue).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`} accent="from-emerald-500 to-teal-600" />
         <KpiCard icon="ShoppingCart" label="Orders" value={String(c.orders ?? 0)} accent="from-brand-500 to-purple-600" />
         <KpiCard icon="Users" label="Customers" value={String(c.customers ?? 0)} accent="from-orange-500 to-amber-600" />
-        <KpiCard icon="Sparkles" label="AI runs" value={String(c.ai_runs ?? 0)} accent="from-pink-500 to-rose-600" />
+        <KpiCard icon="Package" label="Products" value={String(c.products ?? 0)} accent="from-pink-500 to-rose-600" />
       </div>
 
       {/* Feature cards (clickable → routes to feature) */}
@@ -82,29 +83,6 @@ export default async function DashboardPage() {
               </div>
               <div className="font-semibold text-slate-900">{f.name}</div>
               <div className="text-xs text-slate-500 line-clamp-2">{f.description}</div>
-            </Link>
-          ))}
-        </div>
-      </div>
-
-      {/* AI tools highlight */}
-      <div className="card p-5 bg-gradient-to-br from-brand-50 via-white to-purple-50 border-brand-200">
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-2">
-            <Icon name="Sparkles" className="w-5 h-5 text-brand-600" />
-            <h2 className="font-semibold">AI Center</h2>
-          </div>
-          <Link href="/ai" className="text-xs text-brand-700 hover:text-brand-900">See all {AI_TOOLS.length} tools →</Link>
-        </div>
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2">
-          {AI_TOOLS.slice(0, 5).map((t) => (
-            <Link
-              key={t.slug}
-              href={`/ai/${t.slug}`}
-              className="card p-3 hover:border-brand-400 hover:shadow transition cursor-pointer"
-            >
-              <Icon name={t.icon} className="w-4 h-4 text-brand-600 mb-1.5" />
-              <div className="text-sm font-medium leading-tight">{t.name}</div>
             </Link>
           ))}
         </div>

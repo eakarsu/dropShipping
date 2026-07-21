@@ -1,29 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [demoEmail, setDemoEmail] = useState("");
-  const [demoPassword, setDemoPassword] = useState("");
   const [err, setErr] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
-
-  useEffect(() => {
-    fetch("/api/auth/demo-credentials")
-      .then((r) => r.json())
-      .then((d) => { setDemoEmail(d.email); setDemoPassword(d.password); })
-      .catch(() => {});
-  }, []);
-
-  function fillDemo() {
-    setEmail(demoEmail);
-    setPassword(demoPassword);
-    setErr(null);
-  }
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -52,12 +37,12 @@ export default function LoginPage() {
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-500 to-brand-700 grid place-items-center text-white font-bold">D</div>
             <div className="text-xl font-semibold tracking-tight">Dropship Manager</div>
           </div>
-          <p className="text-slate-500 text-sm">Manage Amazon, Shopify, and Etsy with AI.</p>
+          <p className="text-slate-500 text-sm">Govern orders across connected commerce channels.</p>
         </div>
 
         <div className="card p-6">
           <h1 className="text-lg font-semibold mb-1">Sign in</h1>
-          <p className="text-sm text-slate-500 mb-5">Use the demo button to sign in instantly.</p>
+          <p className="text-sm text-slate-500 mb-5">Use the account issued by your merchant administrator.</p>
 
           <form onSubmit={submit} className="space-y-4">
             <div>
@@ -90,17 +75,7 @@ export default function LoginPage() {
             <button type="submit" disabled={loading} className="btn-primary w-full justify-center">
               {loading ? "Signing in…" : "Sign in"}
             </button>
-            <button type="button" onClick={fillDemo} className="btn-ghost w-full justify-center">
-              ✨ Use demo credentials
-            </button>
           </form>
-
-          {demoEmail && (
-            <div className="mt-5 text-xs text-slate-500 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2">
-              <div><span className="font-medium">Demo email:</span> {demoEmail}</div>
-              <div><span className="font-medium">Demo password:</span> {demoPassword}</div>
-            </div>
-          )}
         </div>
       </div>
     </div>

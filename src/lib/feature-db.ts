@@ -1,6 +1,6 @@
 // Resolve a feature slug → its Drizzle table object so API routes
 // don't have to switch-case across 12 entities.
-import { eq, sql, desc } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 import { db, schema } from "./db";
 import { FEATURES_BY_SLUG, type FeatureDef } from "./features";
 
@@ -27,42 +27,48 @@ export function getFeature(slug: string): { def: FeatureDef; table: (typeof TABL
   return { def, table };
 }
 
-export async function listAll(slug: string) {
+type TenantTable = { id: never; merchantId: never };
+
+export async function listAll(slug: string, merchantId: string) {
   const f = getFeature(slug);
   if (!f) return [];
-  return db.select().from(f.table as never).orderBy(desc(sql.raw("id"))).limit(500) as Promise<Record<string, unknown>[]>;
+  const table = f.table as unknown as TenantTable;
+  return db.select().from(f.table as never).where(eq(table.merchantId, merchantId)).orderBy(desc(table.id)).limit(500) as Promise<Record<string, unknown>[]>;
 }
 
-export async function getOne(slug: string, id: number) {
+export async function getOne(slug: string, id: number, merchantId: string) {
   const f = getFeature(slug);
   if (!f) return null;
-  const [row] = (await db.select().from(f.table as never).where(eq((f.table as never as { id: never }).id, id)).limit(1)) as Record<string, unknown>[];
+  const table = f.table as unknown as TenantTable;
+  const [row] = (await db.select().from(f.table as never).where(and(eq(table.id, id), eq(table.merchantId, merchantId))).limit(1)) as Record<string, unknown>[];
   return row ?? null;
 }
 
-export async function createOne(slug: string, values: Record<string, unknown>) {
+export async function createOne(slug: string, values: Record<string, unknown>, merchantId: string) {
   const f = getFeature(slug);
   if (!f) return null;
-  const [row] = (await db.insert(f.table as never).values(values as never).returning()) as Record<string, unknown>[];
+  const [row] = (await db.insert(f.table as never).values({ ...values, merchantId } as never).returning()) as Record<string, unknown>[];
   return row;
 }
 
-export async function updateOne(slug: string, id: number, values: Record<string, unknown>) {
+export async function updateOne(slug: string, id: number, values: Record<string, unknown>, merchantId: string) {
   const f = getFeature(slug);
   if (!f) return null;
+  const table = f.table as unknown as TenantTable;
   const [row] = (await db
     .update(f.table as never)
     .set(values as never)
-    .where(eq((f.table as never as { id: never }).id, id))
+    .where(and(eq(table.id, id), eq(table.merchantId, merchantId)))
     .returning()) as Record<string, unknown>[];
   return row ?? null;
 }
 
-export async function deleteOne(slug: string, id: number) {
+export async function deleteOne(slug: string, id: number, merchantId: string) {
   const f = getFeature(slug);
   if (!f) return false;
-  await db.delete(f.table as never).where(eq((f.table as never as { id: never }).id, id));
-  return true;
+  const table = f.table as unknown as TenantTable;
+  const deleted = await db.delete(f.table as never).where(and(eq(table.id, id), eq(table.merchantId, merchantId))).returning({ id: table.id });
+  return deleted.length > 0;
 }
 
 // Coerce values from form (all strings) into the DB-friendly shapes Drizzle expects.
