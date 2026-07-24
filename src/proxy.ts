@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { jwtVerify } from "jose";
 
 const COOKIE = "ds_session";
-const PUBLIC_PATHS = ["/login", "/api/auth/login", "/api/auth/logout", "/api/webhooks/", "/api/health", "/_next", "/favicon.ico"];
+const PUBLIC_PATHS = ["/login", "/api/auth/login", "/api/auth/logout", "/api/runtime-ai/", "/api/webhooks/", "/api/health", "/_next", "/favicon.ico"];
 
 export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;

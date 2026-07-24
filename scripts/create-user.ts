@@ -24,8 +24,7 @@ const accountMerchantId: string = merchantId;
 
 async function main() {
   const [existing] = await db.select({ id: users.id }).from(users).where(eq(users.email, accountEmail)).limit(1);
-  if (existing) throw new Error(`Refusing to replace existing account for ${accountEmail}`);
-  await db.insert(users).values({
+  const values = {
     email: accountEmail,
     name,
     merchantId: accountMerchantId,
@@ -33,8 +32,10 @@ async function main() {
     customerId,
     passwordHash: await bcrypt.hash(accountPassword, 12),
     active: true,
-  });
-  console.log(`Created ${role} account for ${accountEmail}`);
+  };
+  if (existing) await db.update(users).set(values).where(eq(users.id, existing.id));
+  else await db.insert(users).values(values);
+  console.log(`${existing ? 'Updated' : 'Created'} ${role} account for ${accountEmail}`);
 }
 
 main()
