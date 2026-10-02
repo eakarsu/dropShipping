@@ -74,7 +74,7 @@ export default function LoginPage() {
 
             <button
               type="button"
-              onClick={() => { setEmail(process.env.NEXT_PUBLIC_DEMO_EMAIL || ''); setPassword(process.env.NEXT_PUBLIC_DEMO_PASSWORD || ''); }}
+              onClick={async () => { const demoEmail = process.env.NEXT_PUBLIC_DEMO_EMAIL || ''; const demoPassword = process.env.NEXT_PUBLIC_DEMO_PASSWORD || ''; setEmail(demoEmail); setPassword(demoPassword); if (!demoEmail || !demoPassword) { setError('Demo credentials are not configured.'); return; } setLoading(true); setError(''); try { const result = await signIn('credentials', { email: demoEmail, password: demoPassword, redirect: false }); if (result?.error) { setError('Invalid email or password'); } else { router.push('/dashboard'); router.refresh(); } } catch { setError('An error occurred. Please try again.'); } finally { setLoading(false); } }}
               disabled={!process.env.NEXT_PUBLIC_DEMO_EMAIL || !process.env.NEXT_PUBLIC_DEMO_PASSWORD}
               aria-label="Auto Fill Demo Credentials"
               style={{ width: '100%', marginBottom: '12px', padding: '10px 14px', borderRadius: '8px', border: '1px solid currentColor', background: 'transparent', cursor: 'pointer' }}
