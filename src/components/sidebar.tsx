@@ -32,6 +32,7 @@ export function Sidebar({ userName, role }: { userName: string; role: string }) 
       </div>
 
       <nav className="flex-1 overflow-y-auto py-3 px-3 space-y-5">
+        <NavSection title="AI Operations"><NavLink href="/ai-operations" icon="Sparkles" label="AI Operations" active={isActive("/ai-operations")} /></NavSection>
         {role !== "customer" && <NavSection title="Overview">
           <NavLink href="/dashboard" icon="LayoutDashboard" label="Dashboard" active={isActive("/dashboard")} />
           <NavLink href="/analytics" icon="BarChart3" label="Analytics" active={isActive("/analytics")} />

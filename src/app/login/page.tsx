@@ -10,24 +10,17 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
-  async function submit(e: React.FormEvent) {
-    e.preventDefault();
-    setLoading(true);
-    setErr(null);
-    const res = await fetch("/api/auth/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password }),
-    });
-    setLoading(false);
-    if (!res.ok) {
-      const j = await res.json().catch(() => ({}));
-      setErr(j.error ?? "Login failed");
-      return;
-    }
-    router.replace("/dashboard");
-    router.refresh();
+  async function login(selectedEmail: string, selectedPassword: string) {
+    setLoading(true); setErr(null);
+    try {
+      const response = await fetch("/api/auth/login", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email: selectedEmail, password: selectedPassword }) });
+      const body = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(body.error || "Login failed");
+      router.replace("/dashboard"); router.refresh();
+    } catch (failure) { setErr(failure instanceof Error ? failure.message : "Login failed"); }
+    finally { setLoading(false); }
   }
+  async function submit(event: React.FormEvent) { event.preventDefault(); await login(email, password); }
 
   return (
     <div className="min-h-screen grid place-items-center bg-gradient-to-br from-slate-50 via-white to-brand-50 px-4">
@@ -74,12 +67,12 @@ export default function LoginPage() {
 
             <button
               type="button"
-              onClick={async () => { const demoEmail = process.env.NEXT_PUBLIC_DEMO_EMAIL || ''; const demoPassword = process.env.NEXT_PUBLIC_DEMO_PASSWORD || ''; setEmail(demoEmail); setPassword(demoPassword); if (!demoEmail || !demoPassword) { setError('Demo credentials are not configured.'); return; } setLoading(true); setError(''); try { const result = await signIn('credentials', { email: demoEmail, password: demoPassword, redirect: false }); if (result?.error) { setError('Invalid email or password'); } else { router.push('/dashboard'); router.refresh(); } } catch { setError('An error occurred. Please try again.'); } finally { setLoading(false); } }}
+              onClick={async () => { const demoEmail = process.env.NEXT_PUBLIC_DEMO_EMAIL || ''; const demoPassword = process.env.NEXT_PUBLIC_DEMO_PASSWORD || ''; setEmail(demoEmail); setPassword(demoPassword); if (!demoEmail || !demoPassword) { setErr('Demo credentials are not configured.'); return; } await login(demoEmail, demoPassword); }}
               disabled={!process.env.NEXT_PUBLIC_DEMO_EMAIL || !process.env.NEXT_PUBLIC_DEMO_PASSWORD}
-              aria-label="Auto Fill Demo Credentials"
+              aria-label="Log In as Demo"
               style={{ width: '100%', marginBottom: '12px', padding: '10px 14px', borderRadius: '8px', border: '1px solid currentColor', background: 'transparent', cursor: 'pointer' }}
             >
-              Auto Fill Demo Credentials
+              Log In as Demo
             </button>
             <button type="submit" disabled={loading} className="btn-primary w-full justify-center">
               {loading ? "Signing in…" : "Sign in"}

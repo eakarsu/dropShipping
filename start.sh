@@ -106,6 +106,7 @@ start_services() {
     [[ -z "${app_pid:-}" ]] || wait "$app_pid" 2>/dev/null || true
   }
   trap cleanup INT TERM EXIT
+  NODE_ENV=production npm --prefix "$project_dir" run build
   npm --prefix "$project_dir" start -- -H 127.0.0.1 -p "$API_PORT" &
   app_pid=$!
   API_PORT="$API_PORT" UI_PORT="$UI_PORT" node "$project_dir/scripts/runtime-proxy.mjs" &
